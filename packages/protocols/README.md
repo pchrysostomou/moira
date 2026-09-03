@@ -1,7 +1,7 @@
 # moirae-protocols
 
 Protocol implementations for the [moirae](https://github.com/pchrysostomou/moirae) deterministic
-simulator. v0 ships two: Raft and single-decree Paxos.
+simulator. v0 ships three: Raft, single-decree Paxos, and the ABD atomic register.
 
 `Raft` is a transcription of Ongaro & Ousterhout, *In Search of an Understandable Consensus
 Algorithm* (USENIX ATC 2014): leader election, log replication, the §5.4 safety restrictions, and
@@ -22,6 +22,13 @@ in [docs/PAXOS.md](https://github.com/pchrysostomou/moirae/blob/main/docs/PAXOS.
 classically mis-implemented rules — accept `>` where the paper means ≥, phase 2 ignoring the
 highest reported value, stale and duplicated promises counted — each have a test first shown to
 fail against the naive form. Its invariants: `agreement()`, `validity()`, `proposalIntegrity()`.
+
+`ABD` is a transcription of Attiya, Bar-Noy and Dolev, *Sharing Memory Robustly in
+Message-Passing Systems* (1995): a single-writer, multi-reader atomic register with the
+mandatory read write-back, deterministic tag ordering, and acceptor-grade persistence across
+simulated restarts. Contributed from #31; every choice the paper leaves open is named in
+[docs/ABD.md](https://github.com/pchrysostomou/moirae/blob/main/docs/ABD.md). Its invariants:
+`tagMonotonicity()` and `completedWriteReadFreshness()` — the stale-read catcher.
 
 ```ts
 import { simulate } from 'moirae-core';

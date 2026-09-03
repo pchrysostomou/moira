@@ -9,9 +9,10 @@ the wall tried twelve times to elect a leader and never could — every vote req
 wall. The three on the right side kept theirs. When the wall came down, one election settled it,
 and a node that crashed came back with its log intact.
 
-This is v0: two protocols (Raft and single-decree Paxos), no trace shrinking, no Byzantine
-faults, no membership changes, no pre-vote, nothing hosted. If you arrived expecting Antithesis,
-this is the small, readable TypeScript end of that idea — not a replacement for it.
+This is v0: three protocols (Raft, single-decree Paxos and the ABD atomic register), no trace
+shrinking, no Byzantine faults, no membership changes, no pre-vote, nothing hosted. If you
+arrived expecting Antithesis, this is the small, readable TypeScript end of that idea — not a
+replacement for it.
 
 That run is not a recording of luck. It is seed 19, and it replays byte for byte on your machine:
 
@@ -31,8 +32,8 @@ reproduces the failure exactly, and a trace you can scrub through.
 
 The engine is small and has no dependencies. Raft ships as the proof that the interface is enough:
 a transcription of the paper, with each of the ten classically mis-implemented rules tested
-against its naive form, including the Figure 8 sequence. Single-decree Paxos sits beside it,
-built the same way from *Paxos Made Simple*.
+against its naive form, including the Figure 8 sequence. Single-decree Paxos and the ABD atomic
+register sit beside it, built the same way from their papers.
 
 ## Write a protocol
 
@@ -111,8 +112,9 @@ Three pieces, and a file between them.
   `(time, seq)` event queue, the PRNG, the network model, fault injection and invariant checking.
   Zero dependencies.
 - **Protocols** — [`packages/protocols`](packages/protocols), `moirae-protocols`: `Process`
-  implementations. Raft and single-decree Paxos today, each transcribed from its paper
-  ([`docs/RAFT.md`](docs/RAFT.md), [`docs/PAXOS.md`](docs/PAXOS.md)).
+  implementations. Raft, single-decree Paxos and the ABD register today, each transcribed from
+  its paper ([`docs/RAFT.md`](docs/RAFT.md), [`docs/PAXOS.md`](docs/PAXOS.md),
+  [`docs/ABD.md`](docs/ABD.md)).
   [`examples`](examples) holds the fixed scenarios, with their trace hashes pinned in CI, and the
   sample above.
 - **Studio** — [`apps/studio`](apps/studio): a pure function of a trace file. It imports one type
