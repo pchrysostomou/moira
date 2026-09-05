@@ -23,6 +23,15 @@ describe('summarize', () => {
     expect(text).not.toMatch(/INVARIANT VIOLATED/);
   });
 
+  it('formats time by the header unit (SPEC §5 v2)', () => {
+    const ns =
+      '{"kind":"header","v":2,"seed":1,"nodes":2,"unit":"ns"}\n' +
+      '{"t":1500000000,"seq":0,"kind":"fault","fault":"partition","groups":[[1],[2]]}\n';
+    const text = summarize(ns);
+    expect(text.split('\n')[0]).toBe('seed 1, 2 nodes, 1.50s of simulated time, 1 trace events');
+    expect(text).toMatch(/1\.50s {2}partition \[\[1\],\[2\]\]/);
+  });
+
   it('refuses a file without a header line', () => {
     expect(() => summarize('{"kind":"init","node":1}\n')).toThrow(/no header line/);
   });

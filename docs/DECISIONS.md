@@ -303,3 +303,56 @@ against a stable `Process` interface.
 - Harder: resisting the urge to add gossip "because it's quick".
 - To revisit: after the interface has survived two externally contributed protocols without a
   breaking change, it can be declared stable.
+
+---
+
+# ADR-009: Rust crates for foreign engines; the TypeScript engine stays canonical
+
+**Status:** Accepted
+**Date:** 2026-09-05
+**Deciders:** @pchrysostomou
+
+## Context
+
+ADR-001 chose TypeScript and named the trace format as the migration path: "a Rust engine
+emitting the same JSONL keeps the entire UI and tooling layer intact". That engine now exists.
+ananke (github.com/pchrysostomou/ananke) is a distributed database written in Rust whose
+deterministic simulator must emit moirae traces so its runs open in the studio, and whose
+scheduler must make the same kind of seeded, recorded decisions this engine makes.
+
+Two things have to be shared for that to be honest rather than approximate: the bytes of the
+trace format, and the pseudo-random machinery that turns a seed into decisions. Everything else
+in `packages/core` — the `Process` and `Ctx` model, the network model, invariants — is specific
+to protocols written against this engine and has no place in a database.
+
+## Decision
+
+Two Rust crates live in this repository under `crates/`, in a Cargo workspace beside the pnpm one:
+
+- **`moirae-trace`** — the trace schema as Rust types, an ordered JSON value, a writer whose
+  output is byte-identical to `JSON.stringify` of the engine's literals, and the FNV-1a trace
+  hash. It writes; it does not simulate.
+- **`moirae-sched`** — PCG32 with the same seeding as `pcg32.ts`, named substreams derived from
+  a seed by FNV-1a, and the scheduling policies a foreign engine asks for decisions: uniform
+  random and PCT (Burckhardt et al., ASPLOS 2010), behind one `Scheduler` trait.
+
+Neither crate is a port of `simulate()`. The TypeScript engine remains the canonical
+implementation of the trace format: a format change is made here first, with a version bump
+(ADR-003), and the Rust writer follows. Parity is tested, not assumed: fixtures produced by the
+TypeScript side are committed, and the Rust writer must reproduce them byte for byte; the PCG32
+port asserts the same reference vectors as `pcg32.test.ts`. ADR-004 extends to both crates: zero
+runtime dependencies.
+
+The crates are published to crates.io under those names. Following the lesson of ADR-007 and
+ADR-008, placeholder versions are published before any other work so the names cannot be lost.
+
+## Consequences
+
+- Easier: a second, independent implementation of the byte format hardens it; any Rust engine
+  can emit moirae traces; ananke's runs open in the studio without a bridge in TypeScript.
+- Harder: every format change now touches two implementations and a fixture; the repository
+  carries a Rust toolchain in CI.
+- Stays TypeScript-only: `simulate()`, `Process`/`Ctx`, the network model, invariants, every
+  protocol, the CLI and the studio.
+- To revisit: if a third consumer needs the *simulation* in Rust, that is a new ADR, not an
+  extension of this one.

@@ -1,7 +1,10 @@
 // Playhead state: a simulated time t in [0, duration], optionally advancing
-// in real time at `speed` simulated ms per real ms.
+// in real time at `speed` simulated ms per real ms, whatever unit the trace
+// counts in.
 
+import type { TimeUnit } from 'moirae-core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { unitsPerMs } from './layout';
 
 export interface Playback {
   readonly t: number;
@@ -12,7 +15,7 @@ export interface Playback {
   setSpeed(speed: number): void;
 }
 
-export function usePlayback(duration: number, initial: number): Playback {
+export function usePlayback(duration: number, initial: number, unit: TimeUnit): Playback {
   const [t, setT] = useState(Math.min(Math.max(initial, 0), duration));
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.5);
@@ -26,7 +29,7 @@ export function usePlayback(duration: number, initial: number): Playback {
     let frame = 0;
     const step = (now: number): void => {
       if (last.current !== null) {
-        const dt = (now - last.current) * speed;
+        const dt = (now - last.current) * speed * unitsPerMs(unit);
         setT((cur) => {
           const next = cur + dt;
           if (next >= duration) {
@@ -41,7 +44,7 @@ export function usePlayback(duration: number, initial: number): Playback {
     };
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
-  }, [playing, speed, duration]);
+  }, [playing, speed, duration, unit]);
 
   const seek = useCallback((next: number) => setT(Math.min(Math.max(next, 0), duration)), [duration]);
   const toggle = useCallback(() => {

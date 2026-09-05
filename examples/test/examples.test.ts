@@ -9,8 +9,8 @@ import * as harsh from '../src/harsh';
 // engine or Raft change that silently alters either trace fails here — if the
 // change was deliberate, update the hash in the same commit and say why.
 const PINNED: Record<string, string> = {
-  [clean.name]: '107e1c5c50bd292d',
-  [harsh.name]: 'c0afa164e5a525fc',
+  [clean.name]: 'e3167d5c9bb27370',
+  [harsh.name]: '7129757583541c3f',
 };
 
 for (const example of [clean, harsh]) {

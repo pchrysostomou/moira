@@ -126,8 +126,8 @@ export function simulate<S extends Record<string, unknown>>(
 
   emit(
     opts.network === undefined
-      ? { kind: 'header', v: 1, seed: opts.seed, nodes: nodeCount }
-      : { kind: 'header', v: 1, seed: opts.seed, nodes: nodeCount, network: opts.network },
+      ? { kind: 'header', v: 2, seed: opts.seed, nodes: nodeCount, unit: 'ms' }
+      : { kind: 'header', v: 2, seed: opts.seed, nodes: nodeCount, unit: 'ms', network: opts.network },
   );
 
   const runtimes: NodeRuntime<S>[] = [];

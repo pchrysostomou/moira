@@ -32,7 +32,7 @@ describe('simulate', () => {
       process: proc({ init: () => ({}) }),
       until: {},
     });
-    expect(run.trace[0]).toEqual({ kind: 'header', v: 1, seed: 7, nodes: 2 });
+    expect(run.trace[0]).toEqual({ kind: 'header', v: 2, seed: 7, nodes: 2, unit: 'ms' });
     expect(run.jsonl.endsWith('\n')).toBe(true);
   });
 
@@ -296,7 +296,7 @@ describe('simulate with a network', () => {
 
   it('records the network config in the header only when one is given', () => {
     const plain = simulate({ seed: 1, nodes: 2, process: pinger, until: {} });
-    expect(plain.trace[0]).toEqual({ kind: 'header', v: 1, seed: 1, nodes: 2 });
+    expect(plain.trace[0]).toEqual({ kind: 'header', v: 2, seed: 1, nodes: 2, unit: 'ms' });
     const net = simulate({
       seed: 1,
       nodes: 2,
@@ -306,9 +306,10 @@ describe('simulate with a network', () => {
     });
     expect(net.trace[0]).toEqual({
       kind: 'header',
-      v: 1,
+      v: 2,
       seed: 1,
       nodes: 2,
+      unit: 'ms',
       network: { latency: [10, 20] },
     });
   });

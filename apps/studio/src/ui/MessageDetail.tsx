@@ -15,11 +15,11 @@ export function MessageDetail({ model, msgId }: { model: TraceModel; msgId: numb
   let fate: string;
   if (m.drop !== null) fate = DROP_WORDS[m.drop.reason] ?? `dropped (${m.drop.reason})`;
   else if (m.delivers.length === 0) fate = 'still in flight when the trace ended';
-  else fate = m.delivers.map((d) => `delivered ${formatTime(d.t)}${d.dup ? ' (duplicate)' : ''}`).join(', ');
+  else fate = m.delivers.map((d) => `delivered ${formatTime(d.t, model.unit)}${d.dup ? ' (duplicate)' : ''}`).join(', ');
   return (
     <div className="message-detail">
       <strong>{messageLabel(type)}</strong> <span className="muted">({type})</span> from node {m.send.from} to node{' '}
-      {m.send.to}, sent {formatTime(m.send.t)} — {fate}
+      {m.send.to}, sent {formatTime(m.send.t, model.unit)} — {fate}
       <details>
         <summary>payload</summary>
         <code>{JSON.stringify(m.send.msg)}</code>

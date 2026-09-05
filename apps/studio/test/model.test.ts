@@ -18,7 +18,18 @@ describe('parseJsonl', () => {
   it('names the line on malformed input', () => {
     expect(() => parseJsonl(trace('{"t":0,"seq":0,"kind":"init","node":1}', 'not json'))).toThrow(/line 3: not valid JSON/);
     expect(() => parseJsonl('{"kind":"init"}\n')).toThrow(/line 1: expected the header line/);
-    expect(() => parseJsonl('{"kind":"header","v":2,"seed":1,"nodes":1}\n')).toThrow(/unsupported trace format version 2/);
+    expect(() => parseJsonl('{"kind":"header","v":3,"seed":1,"nodes":1}\n')).toThrow(/unsupported trace format version 3/);
+    expect(() => parseJsonl('{"kind":"header","v":2,"seed":1,"nodes":1,"unit":"s"}\n')).toThrow(/unknown time unit "s"/);
+  });
+
+  it('reads v1 as milliseconds and v2 by its unit (SPEC §5)', () => {
+    expect(deriveModel(parseJsonl(trace())).unit).toBe('ms');
+    const v2ms = '{"kind":"header","v":2,"seed":7,"nodes":2,"unit":"ms"}\n';
+    expect(deriveModel(parseJsonl(v2ms)).unit).toBe('ms');
+    const v2ns = '{"kind":"header","v":2,"seed":7,"nodes":2,"unit":"ns"}\n{"t":1500000000,"seq":0,"kind":"init","node":1}\n';
+    const m = deriveModel(parseJsonl(v2ns));
+    expect(m.unit).toBe('ns');
+    expect(m.duration).toBe(1_500_000_000);
     expect(() => parseJsonl('')).toThrow(TraceParseError);
     expect(() => parseJsonl(trace('{"kind":"init","node":1}'))).toThrow(/line 2: init event without numeric t and seq/);
   });

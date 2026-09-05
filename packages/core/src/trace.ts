@@ -6,11 +6,19 @@
 import type { NetworkConfig } from './network';
 import type { Message, NodeId, SimTime } from './types';
 
+// What `t` counts in. The engine writes milliseconds; a foreign engine such as ananke
+// writes nanoseconds. Absent, which is every v1 trace, means 'ms'.
+export type TimeUnit = 'ms' | 'ns';
+
 export interface TraceHeader {
   kind: 'header';
-  v: 1; // trace format version (ADR-003: versioned from day one)
+  // Trace format version (ADR-003: versioned from day one). v2 added `unit`, made the
+  // crash field lists optional, and documented `queue-full` and log namespacing; a v2
+  // reader accepts v1.
+  v: 1 | 2;
   seed: number;
   nodes: number;
+  unit?: TimeUnit; // v2; the engine always writes it
   network?: NetworkConfig; // present only when a network was configured; absent = default network
 }
 
@@ -39,6 +47,9 @@ export interface DeliverEvent {
   dup?: true; // the extra copy of a duplicated message; absent on the original delivery
 }
 
+// reason: `loss` (random loss), `partition` (crossed a partition boundary at send
+// time), `crashed` (destination down at delivery time), or `queue-full` (the sender's
+// bounded per-destination queue overflowed; written by foreign engines, never by this one).
 export interface DropEvent {
   t: SimTime;
   seq: number;
@@ -65,6 +76,9 @@ export interface TimerEvent {
   name: string;
 }
 
+// A foreign engine namespaces its own event names `<engine>.<topic>`, for example
+// `ananke.task.polled`, so they never collide with a protocol's `ctx.log` names, which
+// are unprefixed.
 export interface LogEvent {
   t: SimTime;
   seq: number;
@@ -75,7 +89,9 @@ export interface LogEvent {
 }
 
 // Self-describing (ADR-003): a reader must be able to tell why a node came
-// back with an empty log without the source that produced the trace.
+// back with an empty log without the source that produced the trace. The two
+// field lists describe this engine's declared-state model; an engine without
+// one (v2) omits both.
 export interface CrashFault {
   t: SimTime;
   seq: number;
@@ -83,8 +99,8 @@ export interface CrashFault {
   fault: 'crash';
   node: NodeId;
   cause: 'self' | 'schedule'; // ctx.crash() vs the fault schedule
-  persisted: string[]; // state fields that survive, in state key order
-  lost: string[]; // state fields that do not
+  persisted?: string[]; // state fields that survive, in state key order
+  lost?: string[]; // state fields that do not
 }
 
 export interface RestartFault {

@@ -187,6 +187,7 @@ those semantics is a `simulate()` scenario.
 ```
 pnpm install
 pnpm typecheck && pnpm lint && pnpm test     # the gate every commit passes on its own
+cargo test --workspace                       # the Rust crates (ADR-009); CI also runs fmt, clippy and doc
 pnpm examples                                 # regenerates the example traces into out/
 pnpm --filter @moirae/studio dev              # then open ?trace=/clean-partition.jsonl
 pnpm --filter moirae build                    # the CLI: dist/cli.js and the bundled studio

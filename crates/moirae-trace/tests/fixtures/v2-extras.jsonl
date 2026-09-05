@@ -1,0 +1,11 @@
+{"kind":"header","v":2,"seed":9007199254740991,"nodes":3,"unit":"ns","ananke":{"version":"0.0.1","clocks":[{"node":1,"skew":-5000000,"drift":250}]}}
+{"t":0,"seq":0,"kind":"init","node":1}
+{"t":1500000000,"seq":1,"kind":"send","from":1,"to":2,"msgId":0,"msg":{"type":"ping","text":"quote\" back\\ nl\n tab\t ctl é 😀"}}
+{"t":1500000000,"seq":2,"kind":"drop","msgId":0,"reason":"queue-full"}
+{"t":1500000001,"seq":3,"kind":"deliver","msgId":0,"dup":true}
+{"t":1500000002,"seq":4,"kind":"log","node":2,"event":"ananke.task.polled","data":{"task":7,"name":"echo","nested":{"ok":true,"none":null,"list":[1,-2]}}}
+{"t":1500000003,"seq":5,"kind":"log","node":2,"event":"ananke.time.advanced"}
+{"t":1500000004,"seq":6,"kind":"fault","fault":"crash","node":3,"cause":"schedule"}
+{"t":1500000005,"seq":7,"kind":"fault","fault":"restart","node":3}
+{"t":1500000006,"seq":8,"kind":"timer","node":1,"name":"election"}
+{"t":1500000007,"seq":9,"kind":"violation","invariant":"electionSafety","detail":"two leaders in term 3"}

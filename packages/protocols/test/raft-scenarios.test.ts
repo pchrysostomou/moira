@@ -5,7 +5,7 @@ import type { Invariant, NetworkConfig, SimulationResult, WorldView } from 'moir
 // The partition scenario's pinned trace hash: Raft plus every engine feature,
 // byte-identical across runs, machines and Node versions (SPEC §10.1). A
 // deliberate change to Raft or the engine updates it in the same commit.
-const PARTITION_GOLDEN_HASH = 'bfe7854ccff30211';
+const PARTITION_GOLDEN_HASH = '98c6dc4a5eb27076';
 import { electionSafety, logMatching, stateMachineSafety } from '../src/index';
 import type { RaftState } from '../src/index';
 // The workload driver lives with the examples; see examples/src/workload.ts.

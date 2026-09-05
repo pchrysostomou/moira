@@ -1,0 +1,18 @@
+# The Rust half of the repository (ADR-009): crates for engines written in Rust that emit
+# moirae traces and ask moirae for scheduling decisions. The TypeScript engine in
+# packages/ stays the canonical implementation of the trace format.
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.98"
+license = "Apache-2.0"
+repository = "https://github.com/pchrysostomou/moirae"
+authors = ["Prodromos Chrysostomou"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "deny"

@@ -1,6 +1,8 @@
 // Geometry shared by the timeline pieces. Everything is drawn in one SVG
 // coordinate space; time maps linearly onto x.
 
+import type { TimeUnit } from 'moirae-core';
+
 export const WIDTH = 1400;
 export const GUTTER = 96; // node labels
 export const RIGHT = 24;
@@ -36,6 +38,12 @@ export function makeScale(duration: number, nodeCount: number, width = WIDTH, gu
   };
 }
 
-export function formatTime(t: number): string {
-  return `${(t / 1000).toFixed(1)}s`;
+// How many trace time units make one millisecond (SPEC §5: v1 traces and the
+// engine count milliseconds; a v2 header may say nanoseconds).
+export function unitsPerMs(unit: TimeUnit): number {
+  return unit === 'ns' ? 1_000_000 : 1;
+}
+
+export function formatTime(t: number, unit: TimeUnit): string {
+  return `${(t / (1000 * unitsPerMs(unit))).toFixed(1)}s`;
 }

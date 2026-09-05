@@ -20,5 +20,6 @@ export type {
   TimerEvent,
   TraceEvent,
   TraceHeader,
+  TimeUnit,
   ViolationEvent,
 } from './trace';

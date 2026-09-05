@@ -117,6 +117,7 @@ Append-only JSONL. One object per event. This file is the interface between the 
 consumer — CLI output, the studio UI, future tooling.
 
 ```jsonc
+{"kind":"header","v":2,"seed":12648430,"nodes":5,"unit":"ms"}
 {"t":0,    "seq":0, "kind":"init",      "node":1}
 {"t":150,  "seq":42,"kind":"send",      "from":1,"to":3,"msgId":88,"msg":{"type":"RequestVote","term":2}}
 {"t":183,  "seq":43,"kind":"deliver",   "msgId":88}
@@ -147,6 +148,17 @@ line. `fault` events are `crash` (with `cause`: `self` for `ctx.crash()` or `sch
 `persisted` and `lost` field lists), `restart`, `partition` (the groups) and `heal` (the groups
 that just ended). The header's `network` field is present only when a network was configured;
 absent means immediate, lossless delivery.
+
+**Format version 2.** The header carries `unit`, what `t` counts in: `ms` for this engine, `ns`
+for a foreign engine such as ananke, whose virtual clock is nanoseconds and whose runs outlive
+the precision a float millisecond would keep. A reader treats a missing `unit` — every v1 trace —
+as `ms`, and a v2 reader accepts v1. `crash` events may omit `persisted` and `lost`, which
+describe this engine's declared-state model, when the emitting engine has none. `drop.reason`
+gains `queue-full`: the sender's bounded per-destination queue overflowed and the oldest frame
+was discarded; this engine never emits it. A foreign engine namespaces its `log` event names
+`<engine>.<topic>`, for example `ananke.task.polled`; a protocol's `ctx.log` names stay
+unprefixed. `seq`, `msgId` and node ids are unchanged. The Rust writer in `crates/moirae-trace`
+(ADR-009) emits v2 only and is held to these bytes by committed fixtures.
 
 A trace is a byte stream, not a text document. Lines end in `\n` (LF) on every platform, and the
 acceptance criterion of byte-identical traces (§10.1) is a hash over those exact bytes. To keep
@@ -236,7 +248,7 @@ Vite + React. Loads a `.jsonl` trace via file picker or URL. Renders:
 The studio imports the trace schema type and nothing else from the engine (ADR-003); a lint rule
 in `eslint.config.mjs` makes that mechanical. It runs no simulation. A trace reaches it as a
 dropped or picked file, as `?trace=URL`, or as a string in `window.__MOIRAE_TRACE__` for
-single-file exports; `?t=ms` sets the playhead. In development the server serves the repo's
+single-file exports; `?t=` sets the playhead, in the trace's time unit. In development the server serves the repo's
 `out/` directory, where `pnpm examples` writes the example traces.
 
 **Display conventions.** The studio is protocol-agnostic and knows nothing about Raft; the trace

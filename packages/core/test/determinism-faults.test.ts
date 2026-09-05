@@ -9,7 +9,7 @@ import type { Ctx, Message, NodeId, Process } from '../src/types';
 // Same rule: a deliberate engine change updates the constant in the same
 // commit and says so; an unexplained change is a bug.
 
-const GOLDEN_HASH = '7d1fb79de507dea8';
+const GOLDEN_HASH = '49a35842b7de982f';
 
 interface GossipState {
   count: number;
