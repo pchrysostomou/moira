@@ -2,7 +2,7 @@
 name = "moirae-trace"
 description = "The moirae trace format for engines written in Rust: schema types, a byte-exact JSONL writer, and the trace hash"
 readme = "README.md"
-keywords = ["deterministic-simulation", "distributed-systems", "testing", "simulation", "trace"]
+keywords = ["dst", "distributed-systems", "testing", "simulation", "trace"]
 categories = ["simulation", "development-tools::testing"]
 version.workspace = true
 edition.workspace = true
