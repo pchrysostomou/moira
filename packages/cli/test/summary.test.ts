@@ -32,6 +32,17 @@ describe('summarize', () => {
     expect(text).toMatch(/1\.50s {2}partition \[\[1\],\[2\]\]/);
   });
 
+  it('describes a v2 crash without field lists as just crashed', () => {
+    const ns =
+      '{"kind":"header","v":2,"seed":1,"nodes":2,"unit":"ns"}\n' +
+      '{"t":1100000000,"seq":0,"kind":"fault","fault":"crash","node":2,"cause":"schedule"}\n' +
+      '{"t":1100000000,"seq":1,"kind":"fault","fault":"restart","node":2}\n';
+    const text = summarize(ns);
+    expect(text).toMatch(/1\.10s {2}node 2 crashed\n/);
+    expect(text).not.toMatch(/kept/);
+    expect(text).toMatch(/1\.10s {2}node 2 restarted/);
+  });
+
   it('refuses a file without a header line', () => {
     expect(() => summarize('{"kind":"init","node":1}\n')).toThrow(/no header line/);
   });

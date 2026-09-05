@@ -11,7 +11,7 @@ import { parseJsonl } from '../src/trace/parse';
 // "trace opens in the studio" half of ananke's Phase 0 exit criterion, and the two
 // repositories can only drift from each other loudly.
 
-const PINNED = '5bd6ce7c13644af5';
+const PINNED = '1e45f59f9b66c501';
 
 describe('the ananke echo fixture (format v2, nanoseconds)', () => {
   const text = readFileSync('apps/studio/test/fixtures/echo-42.jsonl', 'utf8');

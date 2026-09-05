@@ -1,4 +1,4 @@
-{"kind":"header","v":2,"seed":42,"nodes":3,"unit":"ns","ananke":{"version":"0.0.1","policy":"pct-3","config":{"pDropPpm":100000,"delayMinNs":1000000,"delayMaxNs":10000000,"pDurablePpm":1000000,"maxSkewNs":50000000,"maxDriftPpm":500,"runLengthHint":4200},"clocks":[{"node":1,"skewNs":-32169312,"driftPpm":289},{"node":2,"skewNs":44918603,"driftPpm":257},{"node":3,"skewNs":25037094,"driftPpm":-410}],"addrs":[{"node":1,"addr":"10.0.0.1:7000"},{"node":2,"addr":"10.0.0.2:7000"},{"node":3,"addr":"10.0.0.3:7000"}]}}
+{"kind":"header","v":2,"seed":42,"nodes":3,"unit":"ns","ananke":{"version":"0.1.0","policy":"pct-3","config":{"pDropPpm":100000,"delayMinNs":1000000,"delayMaxNs":10000000,"pDurablePpm":1000000,"maxSkewNs":50000000,"maxDriftPpm":500,"runLengthHint":4200},"clocks":[{"node":1,"skewNs":-32169312,"driftPpm":289},{"node":2,"skewNs":44918603,"driftPpm":257},{"node":3,"skewNs":25037094,"driftPpm":-410}],"addrs":[{"node":1,"addr":"10.0.0.1:7000"},{"node":2,"addr":"10.0.0.2:7000"},{"node":3,"addr":"10.0.0.3:7000"}]}}
 {"t":0,"seq":0,"kind":"init","node":1}
 {"t":0,"seq":1,"kind":"init","node":2}
 {"t":0,"seq":2,"kind":"init","node":3}
