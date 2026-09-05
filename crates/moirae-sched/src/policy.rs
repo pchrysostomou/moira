@@ -54,8 +54,9 @@ impl Policy {
     }
 }
 
-/// What a deterministic executor asks the policy.
-pub trait Scheduler {
+/// What a deterministic executor asks the policy. `Send`, so an executor can keep it
+/// behind a mutex shared with its tasks.
+pub trait Scheduler: Send {
     /// The policy in force.
     fn policy(&self) -> Policy;
     /// A task exists from now on; PCT draws its priority here.
