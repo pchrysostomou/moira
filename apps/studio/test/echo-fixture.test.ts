@@ -10,15 +10,23 @@ import { parseJsonl } from '../src/trace/parse';
 // sim/tests/echo.rs and the bytes here are that run's output, so this test is the
 // "trace opens in the studio" half of ananke's Phase 0 exit criterion, and the two
 // repositories can only drift from each other loudly.
+//
+// The pin covers the body: every line after the header, hashed with FNV-1a over the
+// exact bytes. The header is excluded because it carries ananke's crate version, and a
+// release must not invalidate every fixture. Same rule, same value, on both sides.
 
-const PINNED = '1e45f59f9b66c501';
+const PINNED = 'd3daa9b2184ebd18';
+
+function bodyHash(text: string): string {
+  return hex64(fnv1a64String(text.slice(text.indexOf('\n') + 1)));
+}
 
 describe('the ananke echo fixture (format v2, nanoseconds)', () => {
   const text = readFileSync('apps/studio/test/fixtures/echo-42.jsonl', 'utf8');
   const model = deriveModel(parseJsonl(text));
 
-  it('hashes to the value ananke pins', () => {
-    expect(hex64(fnv1a64String(text))).toBe(PINNED);
+  it('hashes, body only, to the value ananke pins', () => {
+    expect(bodyHash(text)).toBe(PINNED);
   });
 
   it('parses as v2 with a nanosecond unit and three nodes', () => {
