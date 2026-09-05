@@ -68,7 +68,9 @@ docs/                  SPEC.md, DECISIONS.md, protocol write-ups
 
 ## Definition of done for any change
 
-1. `pnpm typecheck && pnpm lint && pnpm test` is green.
+1. `scripts/gate.sh` has exited 0 on the exact tree being committed, run as that single
+   command (it runs typecheck, lint, test, then cargo fmt, clippy, test and doc), never
+   as separate shell lines whose failures can be missed.
 2. The determinism test still passes (same seed → identical trace hash).
 3. New engine behaviour has a test that would fail without it.
 4. Public API changes are reflected in `docs/SPEC.md`.

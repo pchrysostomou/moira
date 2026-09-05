@@ -184,10 +184,15 @@ those semantics is a `simulate()` scenario.
 
 ## Running the suite
 
+**The gate is one command.** `scripts/gate.sh` runs every check in sequence under
+`set -euo pipefail`. No commit is made unless it has exited 0 on the exact tree being
+committed, run as that single command, never as separate shell lines whose failures can
+be scrolled past. CI runs the same checks.
+
+
 ```
 pnpm install
-pnpm typecheck && pnpm lint && pnpm test     # the gate every commit passes on its own
-cargo test --workspace                       # the Rust crates (ADR-009); CI also runs fmt, clippy and doc
+scripts/gate.sh     # the gate every commit passes on its own: pnpm typecheck, lint, test, then cargo fmt, clippy, test, doc
 pnpm examples                                 # regenerates the example traces into out/
 pnpm --filter @moirae/studio dev              # then open ?trace=/clean-partition.jsonl
 pnpm --filter moirae build                    # the CLI: dist/cli.js and the bundled studio
