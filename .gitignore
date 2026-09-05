@@ -5,3 +5,6 @@ out/
 *.tsbuildinfo
 .eslintcache
 *.tgz
+
+# Rust build output (ADR-009)
+/target/

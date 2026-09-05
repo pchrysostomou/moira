@@ -1,0 +1,17 @@
+[package]
+name = "moirae-sched"
+description = "moirae's seeded scheduling for engines written in Rust: PCG32, named substreams, uniform-random and PCT policies"
+readme = "README.md"
+keywords = ["deterministic-simulation", "distributed-systems", "testing", "scheduler", "pct"]
+categories = ["simulation", "development-tools::testing"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

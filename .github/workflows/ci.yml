@@ -42,3 +42,16 @@ jobs:
           time npx moirae demo --no-open --no-serve
           test -s moirae-demo.jsonl
           npx moirae --version
+
+  # The Rust half (ADR-009): the trace writer and scheduler crates. The
+  # toolchain comes from rust-toolchain.toml, so CI and local runs match.
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
