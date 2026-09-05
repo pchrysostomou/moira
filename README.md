@@ -119,6 +119,10 @@ Three pieces, and a file between them.
   sample above.
 - **Studio** — [`apps/studio`](apps/studio): a pure function of a trace file. It imports one type
   from the engine and nothing else.
+- **Rust** — [`crates/moirae-trace`](crates/moirae-trace) writes the trace format byte for byte as
+  the engine does, and [`crates/moirae-sched`](crates/moirae-sched) is the engine's PRNG and
+  scheduling policies for simulators written in Rust ([ADR-009](docs/DECISIONS.md)). Neither
+  simulates; the TypeScript engine stays the canonical implementation of the format.
 
 The data flow is `simulate()` → `trace.jsonl` → studio, and **the trace file is the contract**:
 versioned JSONL, one self-describing event per line. Anyone can write another viewer against it,
