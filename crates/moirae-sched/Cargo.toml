@@ -12,6 +12,7 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
+moirae-trace = { version = "0.0.1", path = "../moirae-trace" }
 
 [lints]
 workspace = true
