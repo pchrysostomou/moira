@@ -13,8 +13,9 @@
 //!   coin for symmetric choices such as which of two ready futures to serve first.
 //!   [`Uniform`] draws every choice uniformly; [`Pct`] is the priority-based scheduler
 //!   of Burckhardt, Kothari, Musuvathi and Nagarakatte, "A Randomized Scheduler with
-//!   Probabilistic Guarantees of Finding Bugs" (ASPLOS 2010). [`Policy::for_seed`] picks
-//!   one per run so a fuzz campaign gets both.
+//!   Probabilistic Guarantees of Finding Bugs" (ASPLOS 2010), with change points as a
+//!   geometric process over polls so they spread over a run of unknown length.
+//!   [`Policy::for_seed`] picks one per run so a fuzz campaign gets both.
 
 mod pcg32;
 mod policy;
