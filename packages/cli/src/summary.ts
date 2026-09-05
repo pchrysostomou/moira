@@ -50,7 +50,9 @@ export function summarize(jsonl: string): string {
         if (f === 'heal') timeline.push(`${fmt(e.t)}  partition healed`);
         if (f === 'crash') {
           crashed[(e['node'] as number) - 1] = true;
-          timeline.push(`${fmt(e.t)}  node ${e['node']} crashed (kept ${JSON.stringify(e['persisted'])})`);
+          // v2 (SPEC §5): an engine without a declared-state model omits the field lists.
+          const kept = e['persisted'] === undefined ? '' : ` (kept ${JSON.stringify(e['persisted'])})`;
+          timeline.push(`${fmt(e.t)}  node ${e['node']} crashed${kept}`);
         }
         if (f === 'restart') {
           crashed[(e['node'] as number) - 1] = false;
