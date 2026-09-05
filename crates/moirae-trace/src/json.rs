@@ -15,7 +15,8 @@ pub enum Json {
     Null,
     /// `true` or `false`.
     Bool(bool),
-    /// An integer within plus or minus [`MAX_SAFE_INTEGER`]; anything else fails at write time.
+    /// An integer. Within plus or minus [`MAX_SAFE_INTEGER`] it is written as a number;
+    /// outside, as its decimal digits in a string (SPEC §5).
     Int(i64),
     /// A string, escaped the way `JSON.stringify` escapes.
     Str(String),
@@ -48,7 +49,8 @@ impl Json {
     ///
     /// # Errors
     ///
-    /// [`Error::UnsafeInteger`] for an integer outside plus or minus [`MAX_SAFE_INTEGER`].
+    /// The sink's error; integers never fail (SPEC §5: outside plus or minus
+    /// [`MAX_SAFE_INTEGER`] they are written as strings).
     pub fn write_to(&self, out: &mut String) -> Result<(), Error> {
         match self {
             Json::Null => out.push_str("null"),
@@ -93,20 +95,30 @@ impl Json {
     }
 }
 
+/// SPEC §5: an integer a JavaScript reader would not keep exact is written as its
+/// decimal digits in a string, so a 64-bit value survives the trip and a reader that
+/// expects an integer there reads the string as one.
 pub(crate) fn write_int(v: i64, out: &mut String) -> Result<(), Error> {
     let safe = i64::try_from(MAX_SAFE_INTEGER).expect("2^53 fits i64");
     if v > safe || v < -safe {
-        return Err(Error::UnsafeInteger(i128::from(v)));
+        out.push('"');
     }
     write!(out, "{v}").expect("writing to a String cannot fail");
+    if v > safe || v < -safe {
+        out.push('"');
+    }
     Ok(())
 }
 
+/// See [`write_int`].
 pub(crate) fn write_u64(v: u64, out: &mut String) -> Result<(), Error> {
     if v > MAX_SAFE_INTEGER {
-        return Err(Error::UnsafeInteger(i128::from(v)));
+        out.push('"');
     }
     write!(out, "{v}").expect("writing to a String cannot fail");
+    if v > MAX_SAFE_INTEGER {
+        out.push('"');
+    }
     Ok(())
 }
 
@@ -167,17 +179,12 @@ mod tests {
     }
 
     #[test]
-    fn integers_beyond_2_53_are_refused() {
+    fn integers_beyond_2_53_are_written_as_strings() {
         let safe = i64::try_from(MAX_SAFE_INTEGER).unwrap();
         assert_eq!(text(&Json::Int(safe)), "9007199254740991");
         assert_eq!(text(&Json::Int(-safe)), "-9007199254740991");
-        assert!(matches!(
-            Json::Int(safe + 1).to_json(),
-            Err(Error::UnsafeInteger(_))
-        ));
-        assert!(matches!(
-            Json::Int(-safe - 1).to_json(),
-            Err(Error::UnsafeInteger(_))
-        ));
+        assert_eq!(text(&Json::Int(safe + 1)), "\"9007199254740992\"");
+        assert_eq!(text(&Json::Int(-safe - 1)), "\"-9007199254740992\"");
+        assert_eq!(text(&Json::Int(i64::MAX)), "\"9223372036854775807\"");
     }
 }

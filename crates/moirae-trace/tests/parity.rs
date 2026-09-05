@@ -688,6 +688,30 @@ fn reproduces_the_v2_extras_fixture() {
             invariant: "electionSafety".into(),
             detail: "two leaders in term 3".into(),
         },
+        // SPEC §5: integers past 2^53 travel as strings, in data and as `t`.
+        Event::Log {
+            t: 1500000008,
+            node: 2,
+            event: "ananke.wal.recovered".into(),
+            data: Some(Json::obj(vec![
+                ("records", Json::Int(12)),
+                (
+                    "stop",
+                    Json::obj(vec![
+                        ("segment", Json::Int(3)),
+                        ("offset", Json::Int(40)),
+                        ("reason", Json::str("gap")),
+                        ("expected", Json::Int(13)),
+                        ("found", Json::Int(18_014_398_509_482_243)),
+                    ]),
+                ),
+            ])),
+        },
+        Event::Timer {
+            t: 9_007_199_254_740_992,
+            node: 1,
+            name: "late".into(),
+        },
     ];
     assert_eq!(write(&header, &events), expected);
     // The recorded file is also what Verify expects, line for line.

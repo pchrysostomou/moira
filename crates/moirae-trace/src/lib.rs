@@ -7,7 +7,9 @@
 //!
 //! - [`Json`] is an ordered JSON value with no floats: a JavaScript reader keeps integers
 //!   exact only up to 2^53, and float formatting parity between languages is a test nobody
-//!   wants, so numbers are integers within [`MAX_SAFE_INTEGER`].
+//!   wants, so numbers are integers. One outside plus or minus [`MAX_SAFE_INTEGER`] is
+//!   written as its decimal digits in a string, in any integer position, and a reader
+//!   takes the string as the integer (SPEC §5).
 //! - [`Event`] is the schema, one variant per `kind`, with the engine's field order.
 //! - [`Writer`] stamps `seq`, serialises, and hands each line to a [`Sink`]: [`Collect`]
 //!   keeps them, [`Verify`] compares them against a recorded trace and stops at the

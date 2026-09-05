@@ -10,8 +10,6 @@ use crate::sink::Sink;
 /// What can go wrong while writing.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
-    /// An integer a JavaScript reader would not keep exact.
-    UnsafeInteger(i128),
     /// A field that must be a JSON object was not: the name says which.
     NotAnObject(&'static str),
     /// An event was written before the header.
@@ -37,9 +35,6 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::UnsafeInteger(v) => {
-                write!(f, "integer {v} is outside the JavaScript-safe range")
-            }
             Error::NotAnObject(what) => write!(f, "{what} must be a JSON object"),
             Error::HeaderFirst => f.write_str("the header must be written before any event"),
             Error::HeaderTwice => f.write_str("the header was already written"),
@@ -103,7 +98,7 @@ impl<S: Sink> Writer<S> {
     ///
     /// # Errors
     ///
-    /// [`Error::HeaderTwice`], an unsafe integer, a non-object `network`, or the sink's error.
+    /// [`Error::HeaderTwice`], a non-object `network`, or the sink's error.
     pub fn header(&mut self, header: &Header) -> Result<(), Error> {
         if self.header_written {
             return Err(Error::HeaderTwice);
@@ -138,8 +133,8 @@ impl<S: Sink> Writer<S> {
     ///
     /// # Errors
     ///
-    /// [`Error::HeaderFirst`], an unsafe integer, a non-object `msg`, `patch` or `data`,
-    /// or the sink's error.
+    /// [`Error::HeaderFirst`], a non-object `msg`, `patch` or `data`, or the sink's
+    /// error.
     pub fn emit(&mut self, event: &Event) -> Result<u64, Error> {
         if !self.header_written {
             return Err(Error::HeaderFirst);
@@ -374,16 +369,29 @@ mod tests {
     }
 
     #[test]
-    fn times_beyond_2_53_are_refused() {
+    fn integers_past_2_53_are_written_as_strings_in_every_position() {
+        // SPEC §5: `t`, `msgId` and a value inside `msg` all travel as digit strings.
         let mut w = Writer::new(Collect::default());
-        w.header(&header()).unwrap();
-        let too_big = crate::MAX_SAFE_INTEGER + 1;
+        w.header(&Header {
+            seed: u64::MAX,
+            nodes: 1,
+            unit: TimeUnit::Ns,
+            network: None,
+            extra: vec![],
+        })
+        .unwrap();
+        w.emit(&Event::Send {
+            t: 9_007_199_254_740_992,
+            from: 1,
+            to: 1,
+            msg_id: u64::MAX,
+            msg: Json::obj(vec![("n", Json::Int(i64::MIN))]),
+        })
+        .unwrap();
         assert_eq!(
-            w.emit(&Event::Init {
-                t: too_big,
-                node: 1
-            }),
-            Err(Error::UnsafeInteger(i128::from(too_big)))
+            w.into_sink().jsonl(),
+            "{\"kind\":\"header\",\"v\":2,\"seed\":\"18446744073709551615\",\"nodes\":1,\"unit\":\"ns\"}\n\
+             {\"t\":\"9007199254740992\",\"seq\":0,\"kind\":\"send\",\"from\":1,\"to\":1,\"msgId\":\"18446744073709551615\",\"msg\":{\"n\":\"-9223372036854775808\"}}\n"
         );
     }
 

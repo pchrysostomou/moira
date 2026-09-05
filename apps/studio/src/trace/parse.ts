@@ -19,6 +19,42 @@ export class TraceParseError extends Error {
   }
 }
 
+// SPEC §5 (v2): an integer outside JavaScript's safe range is written as its decimal
+// digits in a string. Wherever the format defines an integer, accept either, and read a
+// string as the nearest double: the studio orders and draws by these values and never
+// needs their low bits.
+const INTEGER_STRING = /^-?\d+$/;
+
+function integer(value: unknown): number | undefined {
+  if (typeof value === 'number') return Number.isInteger(value) ? value : undefined;
+  if (typeof value === 'string' && INTEGER_STRING.test(value)) return Number(value);
+  return undefined;
+}
+
+// The integer positions of an event line, normalised in place; `groups` holds node ids.
+const INTEGER_FIELDS = ['t', 'seq', 'node', 'from', 'to', 'msgId'] as const;
+
+function normaliseIntegers(e: Record<string, unknown>, line: number): void {
+  for (const field of INTEGER_FIELDS) {
+    if (!(field in e)) continue;
+    const n = integer(e[field]);
+    if (n === undefined) throw new TraceParseError(line, `${field} must be an integer, got ${JSON.stringify(e[field])}`);
+    e[field] = n;
+  }
+  if ('groups' in e) {
+    const groups = e['groups'];
+    if (!Array.isArray(groups)) throw new TraceParseError(line, 'groups must be an array');
+    e['groups'] = groups.map((group) => {
+      if (!Array.isArray(group)) throw new TraceParseError(line, 'each group must be an array of node ids');
+      return group.map((id) => {
+        const n = integer(id);
+        if (n === undefined) throw new TraceParseError(line, `node id must be an integer, got ${JSON.stringify(id)}`);
+        return n;
+      });
+    });
+  }
+}
+
 export function parseJsonl(text: string): ParsedTrace {
   const lines = text.split('\n');
   if (lines.at(-1) === '') lines.pop();
@@ -50,9 +86,13 @@ export function parseJsonl(text: string): ParsedTrace {
   if ('unit' in first && first['unit'] !== 'ms' && first['unit'] !== 'ns') {
     throw new TraceParseError(1, `unknown time unit ${JSON.stringify(first['unit'])}; expected "ms" or "ns"`);
   }
-  if (typeof first['nodes'] !== 'number' || typeof first['seed'] !== 'number') {
-    throw new TraceParseError(1, 'header must carry numeric seed and nodes');
+  const seed = integer(first['seed']);
+  const nodes = integer(first['nodes']);
+  if (seed === undefined || nodes === undefined) {
+    throw new TraceParseError(1, 'header must carry integer seed and nodes');
   }
+  first['seed'] = seed;
+  first['nodes'] = nodes;
   const header = first as unknown as TraceHeader;
 
   const events: Exclude<TraceEvent, TraceHeader>[] = [];
@@ -60,9 +100,10 @@ export function parseJsonl(text: string): ParsedTrace {
     const e = parseLine(i);
     if (typeof e['kind'] !== 'string') throw new TraceParseError(i + 1, 'event has no kind');
     if (e['kind'] === 'header') throw new TraceParseError(i + 1, 'a second header line');
-    if (typeof e['t'] !== 'number' || typeof e['seq'] !== 'number') {
+    if (integer(e['t']) === undefined || integer(e['seq']) === undefined) {
       throw new TraceParseError(i + 1, `${e['kind']} event without numeric t and seq`);
     }
+    normaliseIntegers(e, i + 1);
     events.push(e as unknown as Exclude<TraceEvent, TraceHeader>);
   }
   return { header, events };
