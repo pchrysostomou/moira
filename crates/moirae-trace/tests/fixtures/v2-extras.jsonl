@@ -9,3 +9,5 @@
 {"t":1500000005,"seq":7,"kind":"fault","fault":"restart","node":3}
 {"t":1500000006,"seq":8,"kind":"timer","node":1,"name":"election"}
 {"t":1500000007,"seq":9,"kind":"violation","invariant":"electionSafety","detail":"two leaders in term 3"}
+{"t":1500000008,"seq":10,"kind":"log","node":2,"event":"ananke.wal.recovered","data":{"records":12,"stop":{"segment":3,"offset":40,"reason":"gap","expected":13,"found":"18014398509482243"}}}
+{"t":"9007199254740992","seq":11,"kind":"timer","node":1,"name":"late"}

@@ -160,6 +160,16 @@ was discarded; this engine never emits it. A foreign engine namespaces its `log`
 unprefixed. `seq`, `msgId` and node ids are unchanged. The Rust writer in `crates/moirae-trace`
 (ADR-009) emits v2 only and is held to these bytes by committed fixtures.
 
+Integers are JSON numbers within plus or minus 2^53 − 1, the range a JavaScript reader keeps
+exact; there are no floats. An integer outside that range is written as its decimal digits in a
+JSON string, optionally with a leading `-`, in any integer position: `t`, `seq`, `node`, `from`,
+`to`, `msgId`, the header's `seed` and `nodes`, and inside `msg`, `patch`, `data` and an
+engine's header fields. A reader accepts such a string wherever it expects an integer and reads
+it as that integer; the studio reads it as the nearest double, since it orders and draws by
+these values and never needs their low bits. This engine never emits one; a foreign engine
+with 64-bit sequence numbers, or one reporting a corrupted field as it found it, does. The
+`v2-extras.jsonl` parity fixture carries one in `data` and one as `t`.
+
 A trace is a byte stream, not a text document. Lines end in `\n` (LF) on every platform, and the
 acceptance criterion of byte-identical traces (§10.1) is a hash over those exact bytes. To keep
 git from silently breaking this: the repo's `.gitattributes` forces `eol=lf` for all text files
