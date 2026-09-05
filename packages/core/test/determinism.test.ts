@@ -17,7 +17,7 @@ import type { Ctx, Message, NodeId, Process } from '../src/types';
 //  3. seed sensitivity — a hash function of the seed alone would pass 1 and
 //     2; different seeds must produce different traces.
 
-const GOLDEN_HASH = '2732102cf7f36bea';
+const GOLDEN_HASH = 'db080a802edfdf79';
 
 interface GossipState {
   count: number;

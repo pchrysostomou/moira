@@ -5,7 +5,8 @@
 
 import type { TraceModel, PartitionWindow } from '../trace/model';
 import { roleColour } from '../trace/labels';
-import { BARE_GUTTER, BARE_WIDTH, LANE, LANE_PAD, formatTime, makeScale, type Scale, WIDTH } from './layout';
+import type { TimeUnit } from 'moirae-core';
+import { BARE_GUTTER, BARE_WIDTH, LANE, LANE_PAD, formatTime, makeScale, type Scale, unitsPerMs, WIDTH } from './layout';
 
 const ARC_COLOURS: Readonly<Record<string, string>> = {
   RequestVote: '#e0a100',
@@ -45,7 +46,9 @@ export function Timeline({ model, playhead, selected, bare = false, onSeek, onSe
   const width = bare ? BARE_WIDTH : WIDTH;
   const scale = makeScale(model.duration, model.nodes.length, width, bare ? BARE_GUTTER : undefined);
   const ticks: number[] = [];
-  const step = model.duration > 10_000 ? 1000 : 500;
+  // Ticks every half second, every second past ten seconds, in the trace's unit.
+  const per = unitsPerMs(model.unit);
+  const step = (model.duration > 10_000 * per ? 1000 : 500) * per;
   for (let t = 0; t <= model.duration; t += step) ticks.push(t);
   const xHead = scale.x(playhead);
 
@@ -87,7 +90,7 @@ export function Timeline({ model, playhead, selected, bare = false, onSeek, onSe
         <Arcs model={model} scale={scale} selected={selected} onSelect={onSelect} bare={bare} />
         <Crashes model={model} scale={scale} />
       </g>
-      <Axis ticks={ticks} scale={scale} />
+      <Axis ticks={ticks} scale={scale} unit={model.unit} />
       <line x1={xHead} y1={scale.laneTop(1) - 24} x2={xHead} y2={scale.height - 16} stroke="#1d1d1b" strokeWidth={2} pointerEvents="none" />
       {/* Captions are whole sentences: either there or not, never clipped mid-word. */}
       <PartitionCaptions model={model} scale={scale} playhead={playhead} />
@@ -141,7 +144,7 @@ function Lanes({ model, scale }: { model: TraceModel; scale: Scale }) {
                   >
                     <title>
                       node {node}: {iv.role}
-                      {iv.term !== null ? `, term ${iv.term}` : ''} ({formatTime(iv.start)}–{formatTime(iv.end)})
+                      {iv.term !== null ? `, term ${iv.term}` : ''} ({formatTime(iv.start, model.unit)}–{formatTime(iv.end, model.unit)})
                     </title>
                   </rect>
                   {showTerm && w > 14 && (
@@ -206,7 +209,7 @@ function PartitionCaptions({ model, scale, playhead }: { model: TraceModel; scal
         return (
           <g key={w.start}>
             <text x={x0 + 6} y={scale.laneTop(1) - 8} className="caption caption-partition">
-              Partition — {listNodes(smaller)} cut off from {listNodes(rest)} ({formatTime(w.start)}–{formatTime(w.end)})
+              Partition — {listNodes(smaller)} cut off from {listNodes(rest)} ({formatTime(w.start, model.unit)}–{formatTime(w.end, model.unit)})
             </text>
             {w.groups.map((group) => {
               const story = groupStory(model, w, group, playhead);
@@ -390,14 +393,14 @@ function Crashes({ model, scale }: { model: TraceModel; scale: Scale }) {
   );
 }
 
-function Axis({ ticks, scale }: { ticks: number[]; scale: Scale }) {
+function Axis({ ticks, scale, unit }: { ticks: number[]; scale: Scale; unit: TimeUnit }) {
   return (
     <g>
       {ticks.map((t) => (
         <g key={t}>
           <line x1={scale.x(t)} y1={scale.laneTop(1) - 4} x2={scale.x(t)} y2={scale.height - 16} stroke="#d9d9d2" strokeDasharray="2 4" />
           <text x={scale.x(t)} y={scale.height - 2} className="tick" textAnchor="middle">
-            {formatTime(t)}
+            {formatTime(t, unit)}
           </text>
         </g>
       ))}

@@ -5,7 +5,7 @@
 // a node's lane; a field named `currentTerm` (or `term`) labels it. When a
 // trace has neither, `conventions` says so and the UI must say so too.
 
-import type { DeliverEvent, DropEvent, SendEvent, TraceEvent, TraceHeader } from 'moirae-core';
+import type { DeliverEvent, DropEvent, SendEvent, TimeUnit, TraceEvent, TraceHeader } from 'moirae-core';
 import type { ParsedTrace } from './parse';
 
 type Event = Exclude<TraceEvent, TraceHeader>;
@@ -43,6 +43,7 @@ export interface Conventions {
 
 export interface TraceModel {
   readonly header: TraceHeader;
+  readonly unit: TimeUnit; // what every t in this model counts in (SPEC §5)
   readonly nodes: readonly number[];
   readonly duration: number;
   readonly roles: ReadonlyMap<number, readonly RoleInterval[]>;
@@ -73,6 +74,7 @@ function termOf(patch: Record<string, unknown>): number | null | undefined {
 
 export function deriveModel(parsed: ParsedTrace): TraceModel {
   const { header, events } = parsed;
+  const unit: TimeUnit = header.unit ?? 'ms';
   const nodes: number[] = [];
   for (let id = 1; id <= header.nodes; id++) nodes.push(id);
   const duration = events.length > 0 ? Math.max(...events.map((e) => e.t)) : 0;
@@ -201,6 +203,7 @@ export function deriveModel(parsed: ParsedTrace): TraceModel {
 
   return {
     header,
+    unit,
     nodes,
     duration,
     roles,

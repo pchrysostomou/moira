@@ -1,7 +1,8 @@
+import type { TimeUnit } from 'moirae-core';
 import type { Playback } from './usePlayback';
 import { formatTime } from './layout';
 
-export function Scrubber({ playback, duration }: { playback: Playback; duration: number }) {
+export function Scrubber({ playback, duration, unit }: { playback: Playback; duration: number; unit: TimeUnit }) {
   return (
     <div className="scrubber">
       <button type="button" className="play" onClick={playback.toggle} aria-label={playback.playing ? 'pause' : 'play'}>
@@ -17,7 +18,7 @@ export function Scrubber({ playback, duration }: { playback: Playback; duration:
         aria-label="playhead"
       />
       <span className="scrubber-time">
-        {formatTime(playback.t)} / {formatTime(duration)}
+        {formatTime(playback.t, unit)} / {formatTime(duration, unit)}
       </span>
       <label className="scrubber-speed">
         speed

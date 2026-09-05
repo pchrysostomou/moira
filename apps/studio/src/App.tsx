@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
 import { deriveModel, type TraceModel } from './trace/model';
 import { TraceParseError, parseJsonl } from './trace/parse';
+import { formatTime } from './ui/layout';
 import { Legend } from './ui/Legend';
 import { MessageDetail } from './ui/MessageDetail';
 import { Scrubber } from './ui/Scrubber';
@@ -119,7 +120,7 @@ export function App() {
         {status.kind === 'ready' && (
           <p className="muted">
             {status.source} — seed {status.model.header.seed}, {status.model.nodes.length} nodes,{' '}
-            {status.model.messages.length} messages, {(status.model.duration / 1000).toFixed(1)}s of simulated time
+            {status.model.messages.length} messages, {formatTime(status.model.duration, status.model.unit)} of simulated time
           </p>
         )}
       </header>
@@ -137,7 +138,8 @@ function Landing() {
       </p>
       <p className="muted">
         To make the example traces: <code>pnpm examples</code>, then open <code>?trace=/clean-partition.jsonl</code>{' '}
-        or <code>?trace=/harsh.jsonl</code>. Add <code>&amp;t=2600</code> to start the playhead at 2.6 seconds.
+        or <code>?trace=/harsh.jsonl</code>. Add <code>&amp;t=2600</code> to start the playhead 2600 trace time units in — 2.6 seconds
+        for an engine trace, which counts milliseconds; a v2 header says what <code>t</code> counts.
       </p>
     </section>
   );
@@ -156,7 +158,7 @@ function bare(): boolean {
 }
 
 function Viewer({ model }: { model: TraceModel }) {
-  const playback = usePlayback(model.duration, initialPlayhead(model.duration));
+  const playback = usePlayback(model.duration, initialPlayhead(model.duration), model.unit);
   const [selected, setSelected] = useState<number | null>(null);
   const isBare = bare();
 
@@ -184,7 +186,7 @@ function Viewer({ model }: { model: TraceModel }) {
   return (
     <>
       <Legend model={model} />
-      <Scrubber playback={playback} duration={model.duration} />
+      <Scrubber playback={playback} duration={model.duration} unit={model.unit} />
       <Timeline model={model} playhead={playback.t} selected={selected} onSeek={playback.seek} onSelect={setSelected} />
       {selected !== null && <MessageDetail model={model} msgId={selected} />}
       <StatePanel model={model} t={playback.t} />

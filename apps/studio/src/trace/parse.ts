@@ -42,8 +42,13 @@ export function parseJsonl(text: string): ParsedTrace {
   if (first['kind'] !== 'header') {
     throw new TraceParseError(1, `expected the header line, got kind ${JSON.stringify(first['kind'])}`);
   }
-  if (first['v'] !== 1) {
-    throw new TraceParseError(1, `unsupported trace format version ${JSON.stringify(first['v'])}; this studio reads v1`);
+  const v = first['v'];
+  if (v !== 1 && v !== 2) {
+    throw new TraceParseError(1, `unsupported trace format version ${JSON.stringify(v)}; this studio reads v1 and v2`);
+  }
+  // v2 (SPEC §5): the header says what `t` counts in; a missing unit is milliseconds.
+  if ('unit' in first && first['unit'] !== 'ms' && first['unit'] !== 'ns') {
+    throw new TraceParseError(1, `unknown time unit ${JSON.stringify(first['unit'])}; expected "ms" or "ns"`);
   }
   if (typeof first['nodes'] !== 'number' || typeof first['seed'] !== 'number') {
     throw new TraceParseError(1, 'header must carry numeric seed and nodes');

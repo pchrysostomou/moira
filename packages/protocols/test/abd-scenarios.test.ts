@@ -5,7 +5,7 @@ import { ABD, completedWriteReadFreshness, tagMonotonicity } from '../src/index'
 import type { ABDState } from '../src/index';
 import { historyFromTrace, isLinearizable } from './abd-history-checker';
 
-const WRITE_READ_GOLDEN_HASH = '45c4b05f92f6d691';
+const WRITE_READ_GOLDEN_HASH = '6e3c17af87b96b8e';
 
 class ABDWriteThenRead extends ABD {
   override init(ctx?: Ctx<ABDState>): ABDState {
