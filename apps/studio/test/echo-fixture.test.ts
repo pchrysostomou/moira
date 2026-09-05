@@ -6,7 +6,9 @@ import { parseJsonl } from '../src/trace/parse';
 
 // The trace ananke's deterministic simulator writes for its echo scenario, seed 42:
 // three nodes under drops, delays, clock skew, a partition, a one-way block and a
-// crash, exported through crates/moirae-trace (ADR-009). ananke pins this hash in
+// crash, exported through crates/moirae-trace (ADR-009). Since ananke's Phase 1 gate
+// every node keeps a checksummed journal on its simulated disk, so the crash also
+// carries the SPEC §1.3 disk faults as log events. ananke pins this hash in
 // sim/tests/echo.rs and the bytes here are that run's output, so this test is the
 // "trace opens in the studio" half of ananke's Phase 0 exit criterion, and the two
 // repositories can only drift from each other loudly.
@@ -15,7 +17,7 @@ import { parseJsonl } from '../src/trace/parse';
 // exact bytes. The header is excluded because it carries ananke's crate version, and a
 // release must not invalidate every fixture. Same rule, same value, on both sides.
 
-const PINNED = 'd3daa9b2184ebd18';
+const PINNED = '19f19201df99a799';
 
 function bodyHash(text: string): string {
   return hex64(fnv1a64String(text.slice(text.indexOf('\n') + 1)));
@@ -23,7 +25,8 @@ function bodyHash(text: string): string {
 
 describe('the ananke echo fixture (format v2, nanoseconds)', () => {
   const text = readFileSync('apps/studio/test/fixtures/echo-42.jsonl', 'utf8');
-  const model = deriveModel(parseJsonl(text));
+  const parsed = parseJsonl(text);
+  const model = deriveModel(parsed);
 
   it('hashes, body only, to the value ananke pins', () => {
     expect(bodyHash(text)).toBe(PINNED);
@@ -49,6 +52,15 @@ describe('the ananke echo fixture (format v2, nanoseconds)', () => {
     const walled = model.messages.filter((m) => m.send.t > 300_000_000 && m.send.t <= 600_000_000 && m.send.from === 1);
     expect(walled.length).toBeGreaterThan(0);
     expect(walled.every((m) => m.drop?.reason === 'partition')).toBe(true);
+  });
+
+  it('carries the disk faults of the crash as namespaced log events on the crashed node', () => {
+    const faults = parsed.events.filter((e) => e.kind === 'log' && e.event.startsWith('ananke.fs.'));
+    expect(faults.length).toBeGreaterThan(0);
+    expect(faults.every((e) => e.kind === 'log' && e.node === 3 && e.t === 1_100_000_000)).toBe(true);
+    const kinds = new Set(faults.map((e) => (e.kind === 'log' ? e.event : '')));
+    expect(kinds.has('ananke.fs.bit-rot')).toBe(true);
+    expect(kinds.has('ananke.fs.dir-entry-lost')).toBe(true);
   });
 
   it('carries no role field, so the legend says so instead of colouring lanes', () => {
